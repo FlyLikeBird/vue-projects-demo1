@@ -33,10 +33,10 @@
       "parser": "babel-eslint"
     },
     "rules": {
-		"no-unused-vars":"off",
-		"no-mixed-spaces-and-tabs": "off",
-		"vue/no-unused-components":"off"
-	}
+      "no-unused-vars": "off",
+      "no-mixed-spaces-and-tabs": "off",
+      "vue/no-unused-components": "off"
+    }
   },
   "browserslist": [
     "> 1%",

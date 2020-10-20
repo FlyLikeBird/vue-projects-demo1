@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <!-- <Ceshi msg='hello world' message='lala'/> -->
-	<div :style="{ width:'800px', height:'500px'}">
+	<div :style="{ width:'100%', height:'100%'}">
 		<EnergyFlow :sourceData="energyData"/>
 	</div>
 	<!-- <Watcher /> -->
@@ -109,12 +109,18 @@ export default {
 </script>
 
 <style>
+html,body {
+	width:100%;
+	margin:0;
+	padding:0;
+	height:100%;
+}
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+  height:100%;
 }
 </style>

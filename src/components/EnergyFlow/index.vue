@@ -7,6 +7,9 @@
 		<div v-else-if="!attrsData.attrsCost && !attrsData.attrsCost['ele']"></div>
 		<canvas
 			id='my-canvas'
+			width='1200px'
+			height='500px'
+			:style="{backgroundColor:'#f7f7f7'}"
 		></canvas>
 		
 	</div>
@@ -72,22 +75,24 @@
 						height:rectHeight
 					});
 					attrsCost[energyType].map((attr,j)=>{
-						let rectY = seriesHeight + sumHeight(attrsCost[energyType], j);
-						let width = flowDistance + sumAttrWidth(attrs, j) - flowPoint;
+						let rectY = seriesHeight + sumHeight(attrsCost[energyType], j) ;
+						let width = flowDistance + sumAttrWidth(attrs, j);
 						let itemHeight = attr.itemHeight - margin;
 						if ( energyType === 'ele' ){
-							attr.rectY = rectY;
+							attr.rectY = rectY + attr.itemHeight/2;
 							attr.rectX = flowPoint;
 							attr.width = width;
 							attr.height = attr.itemHeight - margin;
 						} else {
-							let pathStartY = rectY + attr.itemHeight/2;
+							// console.log(rectY);
+							let pathStartY = rectY + attr.itemHeight/2 ;
 							let pathEndY = sumHeight(attrsCost['ele'], j) + attrsCost['ele'][j].itemHeight;
-							let pathWidth = width + flowPoint + itemHeight/2 + sumVerticalWidth(attrsCost, i, j);
+							let pathWidth = width + itemHeight/2 ;
 							let pathLength = ( pathWidth - flowPoint)  // 横向路径
 											+ ( pathStartY - pathEndY ) // 竖向路径
 							attr.pathStartX = flowPoint;
 							attr.pathStartY = pathStartY;
+							attr.height = attr.itemHeight - margin;
 							attr.pathEndY = pathEndY;
 							attr.pathWidth = pathWidth;
 							attr.pathLength = pathLength;
@@ -102,30 +107,63 @@
 				attrsCost = Object.keys(attrsCost).map(key=>attrsCost[key]).reduce((sum,cur)=>{
 					return sum.concat(cur)
 				},[]);
-				console.log(attrsCost);
+				// console.log(attrsCost);
 				return { attrsCost, attrs };
 			}
 		},
 		mounted(){
-			let containerWidth = this.$el.offsetWidth;
-			let containerHeight = this.$el.offsetHeight;  
-			let { attrsCost, attrs } = this.attrsData;
-			let chartWidth = flowDistance + sumAttrWidth(attrs, attrs.length);
-			let chartHeight = this.entryCost.reduce((sum,cur)=> {
-				sum+=cur.height;
-				return sum;
-			},0);
-			let xRatio = chartWidth /  containerWidth ;
-			let yRatio = chartHeight / containerHeight;
-			// 选择缩放比例大的轴的比例，确保整个图形完整显示出来，不会被裁剪掉
-			// finalRatio = xRatio < yRatio ? yRatio : xRatio;      
-			let finalWidth = Math.floor( containerWidth * xRatio) ;
-			let finalHeight = Math.floor( containerHeight * yRatio ) ;
-			this.viewBox = { x:0, y:0, width:finalWidth, height:finalHeight };
+			let canvas = document.getElementById('my-canvas');
+			let ctx = canvas.getContext('2d');
+			if ( ctx ){
+				let { attrsCost, attrs } = this.attrsData;
+				this.drawAttrs(ctx, attrs);
+				this.drawEnergyFlow(ctx, attrsCost);
+				this.drawEnergyEntry(ctx, this.entryCost);
+			}
 		},
 		methods:{
 			toggleChartLoading(){
 				return !this.chartLoading
+			},
+			drawAttrs(ctx, data){
+				console.log(data);
+				data.forEach((item,i)=>{
+					ctx.fillStyle = '#2c3b4d';
+					ctx.fillRect(item.rectX, item.rectY, item.attr_width, item.itemHeight)
+				})
+			},
+			drawEnergyFlow(ctx, data){
+				console.log(data);
+				data.forEach((item,i)=>{
+					ctx.beginPath();
+					if ( item.type === 'ele' ) {
+						ctx.moveTo(item.rectX, item.rectY);
+						ctx.lineTo(item.width, item.rectY);
+					} else if ( item.type === 'water' ){
+						console.log(item.pathStartY);
+						ctx.moveTo(item.pathStartX, item.pathStartY);
+						ctx.lineTo(item.pathWidth, item.pathStartY);
+						ctx.lineTo(item.pathWidth, item.pathEndY);
+					}
+					ctx.strokeStyle=item.color;
+					ctx.lineWidth = item.height;
+					ctx.stroke();
+					ctx.closePath();
+					ctx.textBaseline = 'middle';
+					ctx.font='14px sans-serif';
+					ctx.fillStyle='#fff';
+					ctx.fillText(`￥${Math.floor(item.cost)}元 / ${Math.floor(item.energy)}kwh`, item.rectX + 20, item.rectY);	
+				})
+				
+			},
+			drawEnergyEntry(ctx, data){
+				console.log(data);
+				data.forEach((item,i)=>{
+					ctx.beginPath();
+					ctx.fillStyle=item.color;
+					ctx.fillRect(item.rectX, item.rectY, item.width, item.height);
+					// ctx.fillRect(item.rectX)
+				})
 			}
 		}
 	}
@@ -138,12 +176,7 @@
 		position:relative;
 	}
 	#my-canvas {
-		width:100%;
-		height:100%
+		
 	}
-	.svg-container {
-		width:100%;
-		height:100%;
-		overflow: visible;
-	}
+	
 </style>
