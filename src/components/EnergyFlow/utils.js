@@ -22,7 +22,8 @@ const energyColors = {
 
 export function getTypeEnergy(arr, minCost, maxCost, type){
     let splitMode = +maxCost/+minCost >= 20 ? true : false;
-    return arr.map((item,i)=>{
+    console.log(splitMode, minCost, maxCost);
+	return arr.map((item,i)=>{
         let obj = {};
         obj.attr_id = item.attr_id;
         obj.attr_name = item.attr_name;
@@ -43,8 +44,10 @@ export function getTypeEnergy(arr, minCost, maxCost, type){
                 ?
                 maxHeight
                 : 
-                Math.round((item.cost/minCost)/(maxCost/minCost) * maxHeight)
-                : 
+                Math.round((item.cost/minCost)/(maxCost/minCost) * maxHeight + minHeight )
+                
+				: 
+				
                 type === 'ele' 
                 ?
                 minHeight 

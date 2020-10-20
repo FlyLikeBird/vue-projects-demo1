@@ -1,14 +1,89 @@
-
 <template>
 	<div class='container'>
 		<div v-if="chartLoading">
 			<span>loading</span>
 		</div>
 		<div v-else-if="!attrsData.attrsCost && !attrsData.attrsCost['ele']"></div>
-		<canvas
-			id='my-canvas'
-		></canvas>
-		
+		<svg
+			v-else
+			class='svg-container'
+			preserveAspectRatio="xMidYMid meet" 
+			:viewBox='`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`'
+		>
+			<!-- 维度属性 -->
+			<g v-for="attr in attrsData.attrs" :key="attr.attr_id">
+				<rect 
+					:x="attr.rectX"
+					:y="attr.rectY" 
+					:width="attr.attr_width" 
+					:height="attr.itemHeight" 
+					:style='{ fill:"#2c3b4d"}'                
+				/>
+				<text 
+					fill='#fff' 
+					:style="{ cursor:'pointer' }" 
+					alignment-baseline='middle' 
+					text-anchor='middle'
+					:x="attr.rectX + attr.attr_width/2"
+					:y="attr.rectY + attr.itemHeight/2"
+				>{{ attr.attr_name }}</text>
+				<text
+					fill='#000'
+					font-size="12px"
+					alignment-baseline='middle'
+					text-anchor='middle'
+					:x="attr.rectX + attr.attr_width/2"
+					:y="attr.rectY - 4"
+				>{{ `${Math.floor(attr.attr_output)}元/万元产值` }}</text>
+			</g>
+			<!-- 能流图分流部分-->
+			<g v-for="(item, i) in attrsData.attrsCost" :key="i">
+				<rect 
+					v-if="item.type === 'ele'"
+					:x="item.rectX"
+					:y="item.rectY"
+					:width="item.width"
+					:data-width="item.width"
+					:height="item.height"
+					:style="{ fill:item.color, transition:'all 1s'}"
+				/>
+				<path
+					v-else
+					:d="`M${item.pathStartX} ${item.pathStartY} H${item.pathWidth} V${item.pathEndY}`"
+					:stroke="item.strokeColor"
+					fill='none'
+					:stroke-width="item.strokeWidth"
+					:class="`energy-${i}`"
+					:style="{ transition:'all 1s'}"
+				/>
+				<text 
+					alignment-baseline='middle' 
+					text-anchor='left' 
+					fill='#fff' 
+					:x=" item.type === 'ele' ? item.rectX + 20 : item.pathStartX + 20" 
+					:y=" item.type === 'ele' ? item.rectY + item.itemHeight/2 : item.pathStartY"
+				>
+					{{ `￥${Math.floor(item.cost)}元 / ${Math.floor(item.energy)}kwh` }}
+				</text>
+			</g>
+			<!-- 能源入口 -->
+			<g v-for="(item, i) in entryCost" :key="'entry-'+i">
+				<rect
+					:x="item.rectX"
+					:y="item.rectY"
+					:style="{ fill:item.color }"
+					:width="item.width"
+					:height="item.height"
+				/>
+				<text
+					alignment-baseline='middle'
+					text-anchor='left' 
+					fill='#fff' 
+					:x="item.pointX" 
+					:y="item.pointY"
+				>{{ item.text }}</text>
+			</g>
+		</svg>
 	</div>
 </template>
 
@@ -136,10 +211,6 @@
 		width:100%;
 		height:100%;
 		position:relative;
-	}
-	#my-canvas {
-		width:100%;
-		height:100%
 	}
 	.svg-container {
 		width:100%;
